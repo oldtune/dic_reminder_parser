@@ -4,7 +4,10 @@ use std::{
     path::{Iter, Path},
 };
 
+use rusqlite::Connection;
+
 fn main() -> Result<(), io::Error> {
+    let connection = Connection::open("./dictionary.db").unwrap();
     let mut final_result: Vec<LineFormat> = Vec::new();
     let mut current = LineFormat::new();
     let mut rdr = csv::Reader::from_path("./input.csv")?;
@@ -52,14 +55,23 @@ fn main() -> Result<(), io::Error> {
             }
 
             if current.is_complete() {
-                final_result.push(current);
+                connection
+                    .execute(
+                        "INSERT INTO WORDS VALUES(?1, ?2, ?3, ?4)",
+                        (
+                            &current.word,
+                            &current.word_type,
+                            &current.pronounce,
+                            &current.meaning,
+                        ),
+                    )
+                    .unwrap();
                 current = LineFormat::new();
             }
         }
     }
-    println!("{:?}", final_result);
-    println!("{}", final_result.len());
-    return Ok(());
+
+    Ok(())
 }
 
 #[derive(Debug)]

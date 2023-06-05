@@ -1,44 +1,42 @@
 use std::{
     fs::File,
-    io::{self, BufRead, Read},
+    io::{self, BufRead, BufReader, Lines, Read},
     path::{Iter, Path},
 };
 
-fn main() {
-    let mut file = File::open("./input.txt").unwrap();
-    let mut buffer = vec![];
-    let content = file.read_to_end(&mut buffer).unwrap();
-    let line_count = count_line(&buffer);
-    println!("{}", line_count);
-    // println!("{}", String::from_utf8_lossy(&buffer));
-}
-
-fn count_line(text: &[u8]) -> usize {
-    let mut counter = 0;
-    for i in 0..text.len() {
-        if text[i] == 0xa {
-            counter += 1;
-        }
+fn main() -> Result<(), io::Error> {
+    let lines = read_line("./input.csv")?;
+    for line in lines {
+        if let Ok(line) = line {}
     }
-    counter
+    return Ok(());
 }
 
-pub struct LineFormat<'a> {
+pub struct LineFormat {
     number: usize,
-    word: &'a str,
-    word_type: &'a str,
-    pronounce: &'a str,
-    meaning: &'a str,
+    word: String,
+    word_type: String,
+    pronounce: String,
+    meaning: String,
 }
-impl<'a> LineFormat<'a> {
+
+impl LineFormat {
     pub fn new() -> Self {
         LineFormat {
             number: 0,
-            word: "",
-            word_type: "",
-            pronounce: "",
-            meaning: "",
+            word: "".to_string(),
+            word_type: "".to_string(),
+            pronounce: "".to_string(),
+            meaning: "".to_string(),
         }
+    }
+
+    pub fn is_complete(&self) -> bool {
+        self.number > 0
+            && !self.word.is_empty()
+            && !self.word_type.is_empty()
+            && !self.pronounce.is_empty()
+            && !self.meaning.is_empty()
     }
 }
 
@@ -46,5 +44,7 @@ pub fn read_line<P>(file_name: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where
     P: AsRef<Path>,
 {
-    todo!()
+    let file = File::open(file_name)?;
+    let buffer = BufReader::new(file);
+    Ok(buffer.lines())
 }

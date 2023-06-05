@@ -5,13 +5,64 @@ use std::{
 };
 
 fn main() -> Result<(), io::Error> {
-    let lines = read_line("./input.csv")?;
-    for line in lines {
-        if let Ok(line) = line {}
+    let mut final_result: Vec<LineFormat> = Vec::new();
+    let mut current = LineFormat::new();
+    let mut rdr = csv::Reader::from_path("./input.csv")?;
+    for result in rdr.records() {
+        if let Ok(record) = result {
+            let first_field = record.get(0);
+            if let Some(value) = first_field {
+                if let Ok(some_num) = value.parse::<usize>() {
+                    current.number = some_num;
+                } else if (current.word.is_empty()) {
+                    current.word = value.to_string();
+                } else if (current.word_type.is_empty()) {
+                    current.word_type = value.to_string();
+                } else {
+                    current.meaning.push_str(value);
+                }
+            }
+            let second_field = record.get(1);
+            if let Some(value) = second_field {
+                if (current.word.is_empty()) {
+                    current.word = value.to_string();
+                }
+            }
+            let third_field = record.get(2);
+            if let Some(value) = third_field {
+                if (current.word_type.is_empty()) {
+                    current.word_type = value.to_string();
+                }
+            }
+            let fourth_field = record.get(3);
+            if let Some(value) = fourth_field {
+                if (current.pronounce.is_empty()) {
+                    current.pronounce = value.to_string();
+                }
+            }
+            let fifth_field = record.get(4);
+            if let Some(value) = fifth_field {
+                if current.meaning.is_empty() {
+                    current.meaning = value.to_string();
+                }
+            }
+            let sixth_field = record.get(5);
+            if let Some(value) = sixth_field {
+                current.meaning.push_str(value);
+            }
+
+            if current.is_complete() {
+                final_result.push(current);
+                current = LineFormat::new();
+            }
+        }
     }
+    println!("{:?}", final_result);
+    println!("{}", final_result.len());
     return Ok(());
 }
 
+#[derive(Debug)]
 pub struct LineFormat {
     number: usize,
     word: String,
@@ -38,13 +89,4 @@ impl LineFormat {
             && !self.pronounce.is_empty()
             && !self.meaning.is_empty()
     }
-}
-
-pub fn read_line<P>(file_name: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(file_name)?;
-    let buffer = BufReader::new(file);
-    Ok(buffer.lines())
 }
